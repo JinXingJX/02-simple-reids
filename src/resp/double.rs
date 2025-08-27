@@ -1,5 +1,5 @@
 use super::{extrate_simple_frame_data, CRLF_LEN};
-use crate::resp::frame::{RespDecode, RespEncode, RespError};
+use crate::resp::{RespDecode, RespEncode, RespError};
 use bytes::BytesMut;
 
 // - double: ",[<+|->]<integral>[.<fractional>][<E|e>[sign]<exponent>]\r\n"
@@ -34,7 +34,7 @@ impl RespEncode for f64 {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::resp::frame::RespFrame;
+    use crate::resp::RespFrame;
     use anyhow::Result;
     use std::f64::consts::PI;
 

@@ -1,37 +1,9 @@
+use crate::resp::{
+    BulkString, RespArray, RespDecode, RespError, RespMap, RespNull, RespNullArray,
+    RespNullBulkString, RespSet, SimpleError, SimpleString,
+};
 use bytes::BytesMut;
 use enum_dispatch::enum_dispatch;
-use std::collections::BTreeMap;
-use thiserror::Error;
-
-#[enum_dispatch]
-pub trait RespEncode {
-    fn encode(self) -> Vec<u8>;
-}
-
-pub trait RespDecode: Sized {
-    const PREFIX: &'static str;
-    fn decode(buf: &mut BytesMut) -> Result<Self, RespError>;
-    fn expect_length(buf: &[u8]) -> Result<usize, RespError>;
-}
-
-#[derive(Error, Debug, PartialEq, Eq)]
-pub enum RespError {
-    #[error("Invalid frame: {0}")]
-    InvalidFrame(String),
-    #[error("Invalid frame type: {0}")]
-    InvalidFrameType(String),
-    #[error("Invalid frame length： {0}")]
-    InvalidFrameLength(isize),
-    #[error("Frame is not complete")]
-    NotComplete,
-
-    #[error("Parse error: {0}")]
-    ParseIntError(#[from] std::num::ParseIntError),
-    #[error("Utf8 error: {0}")]
-    Utf8Error(#[from] std::string::FromUtf8Error),
-    #[error("Parse float error: {0}")]
-    ParseFloatError(#[from] std::num::ParseFloatError),
-}
 
 #[enum_dispatch(RespEncode)]
 #[enum_dispatch(RespDecode)]
@@ -50,33 +22,6 @@ pub enum RespFrame {
     Map(RespMap),
     Set(RespSet),
 }
-
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd)]
-pub struct RespNullBulkString;
-
-#[derive(Debug, Clone, PartialEq, PartialOrd)]
-pub struct RespArray(pub Vec<RespFrame>);
-
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd)]
-pub struct BulkString(pub Vec<u8>);
-
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd)]
-pub struct RespNullArray;
-
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd)]
-pub struct RespNull;
-
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd)]
-pub struct SimpleString(pub(crate) String);
-
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd)]
-pub struct SimpleError(pub(crate) String);
-
-#[derive(Debug, Clone, PartialEq, PartialOrd)]
-pub struct RespMap(pub BTreeMap<String, RespFrame>);
-
-#[derive(Debug, Clone, PartialEq, PartialOrd)]
-pub struct RespSet(pub Vec<RespFrame>);
 
 impl RespDecode for RespFrame {
     const PREFIX: &'static str = "";

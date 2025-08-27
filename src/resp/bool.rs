@@ -1,13 +1,13 @@
-use super::extract_fixed_data;
-use crate::resp::frame::{RespDecode, RespEncode, RespError};
+use super::extractt_fixed_data;
+use crate::resp::{RespDecode, RespEncode, RespError};
 use bytes::BytesMut;
 
 impl RespDecode for bool {
     const PREFIX: &'static str = "#";
     fn decode(buf: &mut BytesMut) -> Result<Self, RespError> {
-        match extract_fixed_data(buf, "#t\r\n", "Bool") {
+        match extractt_fixed_data(buf, "#t\r\n", "Bool") {
             Ok(_) => Ok(true),
-            Err(_) => match extract_fixed_data(buf, "#f\r\n", "Bool") {
+            Err(_) => match extractt_fixed_data(buf, "#f\r\n", "Bool") {
                 Ok(_) => Ok(false),
                 Err(e) => Err(e),
             },
@@ -27,7 +27,7 @@ impl RespEncode for bool {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::resp::frame::RespFrame;
+    use crate::resp::RespFrame;
     use anyhow::Result;
     use bytes::BufMut;
 

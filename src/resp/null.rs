@@ -1,12 +1,15 @@
-use super::{calc_total_length, extract_fixed_data, parse_length};
-use crate::resp::frame::{RespDecode, RespEncode, RespError, RespNull};
+use super::{calc_total_length, extractt_fixed_data, parse_length};
+use crate::resp::{RespDecode, RespEncode, RespError};
 use bytes::BytesMut;
 use std::ops::Deref;
+
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd)]
+pub struct RespNull;
 
 impl RespDecode for RespNull {
     const PREFIX: &'static str = "_";
     fn decode(buf: &mut BytesMut) -> Result<Self, RespError> {
-        extract_fixed_data(buf, "_\r\n", "Null")?;
+        extractt_fixed_data(buf, "_\r\n", "Null")?;
         Ok(RespNull)
     }
     fn expect_length(buf: &[u8]) -> Result<usize, RespError> {

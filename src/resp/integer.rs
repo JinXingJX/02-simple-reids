@@ -1,5 +1,5 @@
 use super::{extrate_simple_frame_data, CRLF_LEN};
-use crate::resp::frame::{RespDecode, RespEncode, RespError, SimpleString};
+use crate::resp::{RespDecode, RespEncode, RespError, SimpleString};
 use bytes::BytesMut;
 
 impl RespDecode for i64 {

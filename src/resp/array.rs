@@ -1,7 +1,13 @@
-use super::{calc_total_length, extract_fixed_data, parse_length, BUF_CAP};
-use crate::resp::frame::{RespArray, RespDecode, RespEncode, RespError, RespFrame, RespNullArray};
+use super::{calc_total_length, extractt_fixed_data, parse_length, BUF_CAP};
+use crate::resp::{RespDecode, RespEncode, RespError, RespFrame};
 use bytes::{Buf, BytesMut};
 use std::ops::Deref;
+
+#[derive(Debug, Clone, PartialEq, PartialOrd)]
+pub struct RespArray(pub Vec<RespFrame>);
+
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd)]
+pub struct RespNullArray;
 
 // - array: "*<number-of-elements>\r\n<element-1>...<element-n>"
 // - "*2\r\n$3\r\nget\r\n$5\r\nhello\r\n"
@@ -37,7 +43,7 @@ impl RespEncode for RespNullArray {
 impl RespDecode for RespNullArray {
     const PREFIX: &'static str = "*";
     fn decode(buf: &mut BytesMut) -> Result<Self, RespError> {
-        extract_fixed_data(buf, "*-1\r\n", "NullArray")?;
+        extractt_fixed_data(buf, "*-1\r\n", "NullArray")?;
         Ok(RespNullArray)
     }
     fn expect_length(buf: &[u8]) -> Result<usize, RespError> {
@@ -46,7 +52,7 @@ impl RespDecode for RespNullArray {
     }
 }
 impl RespArray {
-    fn new(s: impl Into<Vec<RespFrame>>) -> Self {
+    pub fn new(s: impl Into<Vec<RespFrame>>) -> Self {
         RespArray(s.into())
     }
 }
@@ -86,7 +92,7 @@ impl RespEncode for RespArray {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::resp::frame::{RespFrame, SimpleString};
+    use crate::resp::{RespFrame, SimpleString};
     use anyhow::Result;
 
     #[test]

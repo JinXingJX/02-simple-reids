@@ -10,8 +10,50 @@ mod set;
 mod simple_error;
 mod simple_string;
 
-use crate::resp::frame::{RespDecode, RespError, RespFrame, SimpleString};
 use bytes::{Buf, BytesMut};
+use enum_dispatch::enum_dispatch;
+use thiserror::Error;
+
+#[enum_dispatch]
+pub trait RespEncode {
+    fn encode(self) -> Vec<u8>;
+}
+
+pub trait RespDecode: Sized {
+    const PREFIX: &'static str;
+    fn decode(buf: &mut BytesMut) -> Result<Self, RespError>;
+    fn expect_length(buf: &[u8]) -> Result<usize, RespError>;
+}
+
+#[derive(Error, Debug, PartialEq, Eq)]
+pub enum RespError {
+    #[error("Invalid frame: {0}")]
+    InvalidFrame(String),
+    #[error("Invalid frame type: {0}")]
+    InvalidFrameType(String),
+    #[error("Invalid frame length： {0}")]
+    InvalidFrameLength(isize),
+    #[error("Frame is not complete")]
+    NotComplete,
+
+    #[error("Parse error: {0}")]
+    ParseIntError(#[from] std::num::ParseIntError),
+    #[error("Utf8 error: {0}")]
+    Utf8Error(#[from] std::string::FromUtf8Error),
+    #[error("Parse float error: {0}")]
+    ParseFloatError(#[from] std::num::ParseFloatError),
+}
+
+pub use self::{
+    array::{RespArray, RespNullArray},
+    bulk_string::{BulkString, RespNullBulkString},
+    frame::RespFrame,
+    map::RespMap,
+    null::RespNull,
+    set::RespSet,
+    simple_error::SimpleError,
+    simple_string::SimpleString,
+};
 
 const BUF_CAP: usize = 16;
 const CRLF_LEN: usize = 2; // \r\n
@@ -60,7 +102,7 @@ pub fn parse_length(buf: &[u8], prefix: &str) -> Result<(usize, usize), RespErro
 }
 
 // utility functions
-pub fn extract_fixed_data(
+pub fn extractt_fixed_data(
     buf: &mut BytesMut,
     expect: &str,
     expect_type: &str,

@@ -1,7 +1,10 @@
 use super::{calc_total_length, parse_length, BUF_CAP};
-use crate::resp::frame::{RespDecode, RespEncode, RespError, RespFrame, RespSet};
+use crate::resp::{RespDecode, RespEncode, RespError, RespFrame};
 use bytes::{Buf, BytesMut};
 use std::ops::Deref;
+
+#[derive(Debug, Clone, PartialEq, PartialOrd)]
+pub struct RespSet(pub Vec<RespFrame>);
 
 // - set: "~<number-of-elements>\r\n<element-1>...<element-n>"
 impl RespDecode for RespSet {
@@ -52,7 +55,7 @@ impl RespSet {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::resp::frame::{BulkString, SimpleString};
+    use crate::resp::{BulkString, SimpleString};
     use anyhow::Result;
     #[test]
     fn test_set_decode() -> Result<()> {

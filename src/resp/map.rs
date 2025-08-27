@@ -1,8 +1,11 @@
 use super::{calc_total_length, parse_length, BUF_CAP};
-use crate::resp::frame::{RespDecode, RespEncode, RespError, RespFrame, RespMap, SimpleString};
+use crate::resp::{RespDecode, RespEncode, RespError, RespFrame, SimpleString};
 use bytes::{Buf, BytesMut};
 use std::collections::BTreeMap;
 use std::ops::{Deref, DerefMut};
+
+#[derive(Debug, Clone, PartialEq, PartialOrd)]
+pub struct RespMap(pub BTreeMap<String, RespFrame>);
 
 // - map: "%<number-of-entries>\r\n<key-1><value-1>...<key-n><value-n>"
 // we only support string key which encode to SimpleString
@@ -61,10 +64,17 @@ impl RespMap {
         RespMap(BTreeMap::new())
     }
 }
+
+impl Default for RespMap {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::resp::frame::BulkString;
+    use crate::resp::BulkString;
     use anyhow::Result;
 
     #[test]

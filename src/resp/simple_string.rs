@@ -1,7 +1,10 @@
 use super::{extrate_simple_frame_data, CRLF_LEN};
-use crate::resp::frame::{RespDecode, RespError, SimpleString};
+use crate::resp::{RespDecode, RespError};
 use bytes::BytesMut;
 use std::ops::Deref;
+
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd)]
+pub struct SimpleString(pub(crate) String);
 
 impl RespDecode for SimpleString {
     const PREFIX: &'static str = "+";
@@ -24,10 +27,16 @@ impl Deref for SimpleString {
     }
 }
 
+impl SimpleString {
+    pub fn new(s: impl Into<String>) -> Self {
+        SimpleString(s.into())
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::resp::frame::{RespEncode, RespFrame, SimpleString};
+    use crate::resp::{RespEncode, RespFrame, SimpleString};
     use anyhow::Result;
     use bytes::BufMut;
 

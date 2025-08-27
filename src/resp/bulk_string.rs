@@ -1,14 +1,20 @@
 use super::{
-    calc_total_length, extract_fixed_data, extrate_simple_frame_data, parse_length, CRLF_LEN,
+    calc_total_length, extractt_fixed_data, extrate_simple_frame_data, parse_length, CRLF_LEN,
 };
-use crate::resp::frame::{BulkString, RespDecode, RespEncode, RespError, RespNullBulkString};
+use crate::resp::{RespDecode, RespEncode, RespError};
 use bytes::{Buf, BytesMut};
 use std::ops::Deref;
+
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd)]
+pub struct RespNullBulkString;
+
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd)]
+pub struct BulkString(pub(crate) Vec<u8>);
 
 impl RespDecode for RespNullBulkString {
     const PREFIX: &'static str = "$";
     fn decode(buf: &mut BytesMut) -> Result<Self, RespError> {
-        extract_fixed_data(buf, "$-1\r\n", "NullBulkString")?;
+        extractt_fixed_data(buf, "$-1\r\n", "NullBulkString")?;
         Ok(RespNullBulkString)
     }
     fn expect_length(buf: &[u8]) -> Result<usize, RespError> {
@@ -50,6 +56,37 @@ impl Deref for BulkString {
         &self.0
     }
 }
+
+impl From<&str> for BulkString {
+    fn from(value: &str) -> Self {
+        BulkString::new(value.as_bytes().to_vec())
+    }
+}
+
+impl From<String> for BulkString {
+    fn from(s: String) -> Self {
+        BulkString(s.into_bytes())
+    }
+}
+
+impl From<&[u8]> for BulkString {
+    fn from(s: &[u8]) -> Self {
+        BulkString::new(s)
+    }
+}
+
+impl<const N: usize> From<&[u8; N]> for BulkString {
+    fn from(s: &[u8; N]) -> Self {
+        BulkString(s.to_vec())
+    }
+}
+
+impl AsRef<[u8]> for BulkString {
+    fn as_ref(&self) -> &[u8] {
+        &self.0
+    }
+}
+
 impl BulkString {
     pub fn new(s: impl Into<Vec<u8>>) -> Self {
         BulkString(s.into())
@@ -75,7 +112,7 @@ impl RespEncode for RespNullBulkString {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::resp::frame::{RespFrame, SimpleString};
+    use crate::resp::{RespFrame, SimpleString};
     use anyhow::Result;
     #[test]
     fn test_null_bulk_string_decode() -> Result<()> {
